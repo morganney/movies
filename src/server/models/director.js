@@ -1,44 +1,53 @@
 'use strict'
 
-import fs from 'fs'
+import DB from './db'
+import unique from 'array-uniq'
 
 class Director {
   constructor (id) {
     this._id = id
     this._props = null
-    this._file = `${__dirname}/../directors.json`
   }
 
   fetchAll () {
-    return new Promise((resolve, reject) => {
-      fs.readFile(this.file, (err, buff) => {
-        if (err) {
-          reject(err)
-        } else {
-          let directors = JSON.parse(buff.toString())
-
-          directors.forEach(function (director) {
-            director.id = parseInt(director.id, 10)
-          })
-          this.props = directors
-          resolve(directors)
-        }
-      })
-    })
+    return DB.getDirectors()
   }
 
   fetch () {
     return new Promise((resolve, reject) => {
-      Promise.all([
-        this.fetchAll()
-      ]).then((promises) => {
+      DB.getTables().then((tables) => {
         let id = parseInt(this.id, 10)
-        let directors = promises[0]
+        let movies = tables[0]
+        let directors = tables[1]
+        let actors = tables[2]
+        let links = tables[3]
         let director = directors.find(function (director) {
           return director.id === id
         })
 
-        this.props = director || {}
+        if (!director) {
+          director = {}
+        } else {
+          director.actors = []
+          director.movies = []
+          movies.forEach(function (movie) {
+            if (movie.directorID === id) {
+              director.movies.push(movie)
+              links.forEach(function (link) {
+                if (link.movieID === movie.id) {
+                  director.actors.push(actors.find(function (actor) {
+                    return actor.id === link.actorID
+                  }))
+                }
+              })
+            }
+          })
+          if (director.actors.length) {
+            director.actors = unique(director.actors)
+          }
+        }
+
+        this.props = director
         resolve(this.props)
       }).catch(function (err) {
         reject(err)
@@ -48,10 +57,6 @@ class Director {
 
   get id () {
     return this._id
-  }
-
-  get file () {
-    return this._file
   }
 
   set props (props) {

@@ -1,63 +1,37 @@
 'use strict'
 
-import fs from 'fs'
-import Director from './director'
-import Link from './link'
-import Actor from './actor'
-
-let director = new Director(null)
-let link = new Link(null)
-let actor = new Actor(null)
+import DB from './db'
 
 class Movie {
   constructor (id) {
     this._id = id
     this._props = null
-    this._file = `${__dirname}/../movies.json`
   }
 
   fetchAll () {
-    return new Promise((resolve, reject) => {
-      fs.readFile(this._file, (err, buff) => {
-        if (err) {
-          reject(err)
-        } else {
-          let movies = JSON.parse(buff.toString())
-
-          movies.forEach(function (movie) { movie.id = parseInt(movie.id, 10) })
-          this.props = movies
-          resolve(movies)
-        }
-      })
-    })
+    return DB.getMovies()
   }
 
   fetch () {
     return new Promise((resolve, reject) => {
-      Promise.all([
-        this.fetchAll(),
-        director.fetchAll(),
-        link.fetchAll(),
-        actor.fetchAll()
-      ]).then((promises) => {
-        let movies = promises[0]
-        let directors = promises[1]
-        let links = promises[2]
-        let actors = promises[3]
-        let movie = movies.find((movie) => {
-          return movie.id === parseInt(this.id, 10)
-        })
+      DB.getTables().then((tables) => {
+        let id = parseInt(this.id, 10)
+        let movies = tables[0]
+        let directors = tables[1]
+        let actors = tables[2]
+        let links = tables[3]
+        let movie = movies.find(function (movie) { return movie.id === id })
 
         if (!movie) {
           movie = {}
         } else {
           movie.actors = []
           movie.links = []
-          movie.director = directors.find((director) => {
+          movie.director = directors.find(function (director) {
             return director.id === movie.directorID
           })
-          links.forEach((link) => {
-            if (link.movieID === parseInt(this.id, 10)) {
+          links.forEach(function (link) {
+            if (link.movieID === id) {
               movie.links.push(link)
               movie.actors.push(actors.find(function (actor) {
                 return actor.id === link.actorID

@@ -1,38 +1,51 @@
 'use strict'
 
-import fs from 'fs'
+import DB from './db'
+import unique from 'array-uniq'
 
 class Actor {
   constructor (id) {
     this._id = id
-    this._file = `${__dirname}/../actors.json`
     this._props = null
   }
 
   fetchAll () {
-    return new Promise((resolve, reject) => {
-      fs.readFile(this.file, (err, buff) => {
-        if (err) {
-          reject(err)
-        } else {
-          let actors = JSON.parse(buff.toString())
-
-          actors.forEach(function (actor) { actor.id = parseInt(actor.id, 10) })
-          this.props = actors
-          resolve(actors)
-        }
-      })
-    })
+    return DB.getActors()
   }
 
   fetch () {
     return new Promise((resolve, reject) => {
-      this.fetchAll().then((actors) => {
-        let actor = actors.find((actor) => {
-          return actor.id === parseInt(this.id, 10)
-        })
+      DB.getTables().then((tables) => {
+        let id = parseInt(this.id, 10)
+        let movies = tables[0]
+        let directors = tables[1]
+        let actors = tables[2]
+        let links = tables[3]
+        let actor = actors.find(function (actor) { return actor.id === id })
 
-        this.props = actor || {}
+        if (!actor) {
+          actor = {}
+        } else {
+          actor.movies = []
+          actor.directors = []
+          links.forEach(function (link) {
+            if (link.actorID === id) {
+              movies.forEach(function (movie) {
+                if (movie.id === link.movieID) {
+                  actor.movies.push(movie)
+                  actor.directors.push(directors.find(function (director) {
+                    return director.id === movie.directorID
+                  }))
+                }
+              })
+            }
+          })
+          if (actor.directors.length) {
+            actor.directors = unique(actor.directors)
+          }
+        }
+
+        this.props = actor
         resolve(this.props)
       }).catch(function (err) {
         reject(err)
@@ -42,10 +55,6 @@ class Actor {
 
   get id () {
     return this._id
-  }
-
-  get file () {
-    return this._file
   }
 
   get props () {

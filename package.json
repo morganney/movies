@@ -8,6 +8,7 @@
     "node": ">= 5"
   },
   "dependencies": {
+    "array-uniq": "^1.0.2",
     "express": "4.13.3",
     "jade": "1.11.0"
   },
