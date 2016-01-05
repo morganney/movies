@@ -4,17 +4,17 @@ html(lang="en")
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     title= title
-    link(
-      rel='stylesheet',
-      media='screen',
-      href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css',
-      integrity='sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7',
-      crossorigin='anonymous'
-    )
+    link(rel='stylesheet', media='screen', href='/css/bootstrap/css/bootstrap.min.css')
     block styles
   body
     .container
-      #skin
-        block app
+      #shell
+        nav(class='navbar navbar-default')
+          .container
+            ul(class='nav navbar-nav')
+              li #[a(href='/movies') Movies]
+              li #[a(href='/directors') Directors]
+              li #[a(href='/actors') Actors]
+        section(class='app')
+          block app
     block scripts
-        

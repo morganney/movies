@@ -1,0 +1,9 @@
+extends layout
+
+block app
+  h1 Actors
+  ul#actors
+
+block scripts
+  script.
+    var actors = !{JSON.stringify(actors)}

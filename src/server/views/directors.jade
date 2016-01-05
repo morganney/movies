@@ -1,0 +1,9 @@
+extends layout
+
+block app
+  h1 Directors
+  ul#directors
+
+block scripts
+  script.
+    var directors = !{JSON.stringify(directors)}

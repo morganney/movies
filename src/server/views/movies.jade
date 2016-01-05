@@ -1,0 +1,8 @@
+extends layout
+
+block app
+  h1 Movies
+  ul#movies
+
+block scripts
+  script(src='/js/movies.app.js', data-collection=movies)
